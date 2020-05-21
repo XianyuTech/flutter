@@ -1,6 +1,11 @@
 package {{androidIdentifier}}
 
+{{#androidX}}
 import androidx.annotation.NonNull
+{{/androidX}}
+{{^androidX}}
+import android.support.annotation.NonNull
+{{/androidX}}
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
