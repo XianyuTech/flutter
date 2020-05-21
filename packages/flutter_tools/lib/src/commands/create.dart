@@ -119,7 +119,8 @@ class CreateCommand extends FlutterCommand {
       'androidx',
       hide: true,
       negatable: true,
-      help: 'Deprecated. Setting this flag has no effect.',
+      defaultsTo: true,
+      help: 'Generate a project using the AndroidX support libraries',
     );
   }
 
@@ -354,6 +355,7 @@ class CreateCommand extends FlutterCommand {
       flutterRoot: flutterRoot,
       renderDriverTest: boolArg('with-driver-test'),
       withPluginHook: generatePlugin,
+      androidX: boolArg('androidx'),
       androidLanguage: stringArg('android-language'),
       iosLanguage: stringArg('ios-language'),
       web: featureFlags.isWebEnabled,
@@ -364,7 +366,8 @@ class CreateCommand extends FlutterCommand {
 
     final String relativeDirPath = globals.fs.path.relative(projectDirPath);
     if (!projectDir.existsSync() || projectDir.listSync().isEmpty) {
-      globals.printStatus('Creating project $relativeDirPath...');
+      //globals.printStatus('Creating project $relativeDirPath...');
+       globals.printStatus('Creating project $relativeDirPath... androidx: ${boolArg('androidx')}');
     } else {
       if (sampleCode != null && !overwrite) {
         throwToolExit('Will not overwrite existing project in $relativeDirPath: '
@@ -578,6 +581,7 @@ To edit platform code in an IDE see https://flutter.dev/developing-packages/#edi
     String projectName,
     String projectDescription,
     String androidLanguage,
+    bool androidX,
     String iosLanguage,
     String flutterRoot,
     bool renderDriverTest = false,
@@ -603,6 +607,7 @@ To edit platform code in an IDE see https://flutter.dev/developing-packages/#edi
       'macosIdentifier': appleIdentifier,
       'description': projectDescription,
       'dartSdk': '$flutterRoot/bin/cache/dart-sdk',
+      'androidX': androidX,
       'useAndroidEmbeddingV2': featureFlags.isAndroidEmbeddingV2Enabled,
       'androidMinApiLevel': android.minApiLevel,
       'androidSdkVersion': android_sdk.minimumAndroidSdkVersion,
