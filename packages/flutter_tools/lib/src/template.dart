@@ -10,6 +10,7 @@ import 'cache.dart';
 import 'dart/package_map.dart';
 import 'dart/pub.dart';
 import 'globals.dart' as globals hide fs;
+import 'dart:io';
 
 /// Expands templates in a directory to a destination. All files that must
 /// undergo template expansion should end with the '.tmpl' extension. All files
@@ -183,6 +184,8 @@ class Template {
           globals.printStatus('  $relativePathForLogging (created)');
         }
       }
+
+      context["FLUTTER_STORAGE_BASE_URL"] = Platform.environment["FLUTTER_STORAGE_BASE_URL"]?.trim()??"http://flutter-storage.alibaba-inc.com";
 
       fileCount++;
 
