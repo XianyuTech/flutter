@@ -330,6 +330,7 @@ class SliverChildBuilderDelegate extends SliverChildDelegate {
   /// existing state to the [Widget] at its new location.
   const SliverChildBuilderDelegate(
     this.builder, {
+    this.childRepaintBoundaryCallback,
     this.findChildIndexCallback,
     this.childCount,
     this.addAutomaticKeepAlives = true,
@@ -354,6 +355,9 @@ class SliverChildBuilderDelegate extends SliverChildDelegate {
   /// The delegate wraps the children returned by this builder in
   /// [RepaintBoundary] widgets.
   final IndexedWidgetBuilder builder;
+  
+  /// Callback to user code querying whether to add RepaintBoundary to a child.
+  final IndexedWidgetNeedRepaintBoundary childRepaintBoundaryCallback;
 
   /// The total number of children this delegate can provide.
   ///
@@ -450,8 +454,13 @@ class SliverChildBuilderDelegate extends SliverChildDelegate {
     if (child == null)
       return null;
     final Key key = child.key != null ? _SaltedValueKey(child.key) : null;
-    if (addRepaintBoundaries)
+    bool childAddRepaintBoundary = addRepaintBoundaries;
+    if (childRepaintBoundaryCallback != null) {
+      childAddRepaintBoundary = childRepaintBoundaryCallback(context, index);
+    }
+    if (childAddRepaintBoundary) {
       child = RepaintBoundary(child: child);
+    }
     if (addSemanticIndexes) {
       final int semanticIndex = semanticIndexCallback(child, index);
       if (semanticIndex != null)
@@ -532,6 +541,7 @@ class SliverChildListDelegate extends SliverChildDelegate {
   /// [SliverChildListDelegate.fixed] constructor.
   SliverChildListDelegate(
     this.children, {
+    this.childRepaintBoundaryCallback,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
@@ -555,6 +565,7 @@ class SliverChildListDelegate extends SliverChildDelegate {
   /// null.
   const SliverChildListDelegate.fixed(
     this.children, {
+    this.childRepaintBoundaryCallback,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
@@ -566,6 +577,9 @@ class SliverChildListDelegate extends SliverChildDelegate {
        assert(addSemanticIndexes != null),
        assert(semanticIndexCallback != null),
        _keyToIndex = null;
+
+  /// Callback to user code querying whether to add RepaintBoundary to a child.
+  final IndexedWidgetNeedRepaintBoundary childRepaintBoundaryCallback;
 
   /// Whether to wrap each child in an [AutomaticKeepAlive].
   ///
@@ -678,8 +692,13 @@ class SliverChildListDelegate extends SliverChildDelegate {
       child != null,
       "The sliver's children must not contain null values, but a null value was found at index $index"
     );
-    if (addRepaintBoundaries)
+    bool childAddRepaintBoundary = addRepaintBoundaries;
+    if (childRepaintBoundaryCallback != null) {
+      childAddRepaintBoundary = childRepaintBoundaryCallback(context, index);
+    }
+    if (childAddRepaintBoundary) {
       child = RepaintBoundary(child: child);
+    }
     if (addSemanticIndexes) {
       final int semanticIndex = semanticIndexCallback(child, index);
       if (semanticIndex != null)

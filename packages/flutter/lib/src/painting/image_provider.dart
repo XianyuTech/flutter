@@ -11,6 +11,7 @@ import 'dart:ui' show Size, Locale, TextDirection, hashValues;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '_external_adapter_image_io.dart' as external_adapter_image;
 import '_network_image_io.dart'
   if (dart.library.html) '_network_image_web.dart' as network_image;
 import 'binding.dart';
@@ -45,6 +46,7 @@ class ImageConfiguration {
     this.textDirection,
     this.size,
     this.platform,
+    this.requestForDimension = false,
   });
 
   /// Creates an object holding the configuration information for an [ImageProvider].
@@ -58,6 +60,7 @@ class ImageConfiguration {
     TextDirection textDirection,
     Size size,
     TargetPlatform platform,
+    bool requestForDimension = false,
   }) {
     return ImageConfiguration(
       bundle: bundle ?? this.bundle,
@@ -66,6 +69,7 @@ class ImageConfiguration {
       textDirection: textDirection ?? this.textDirection,
       size: size ?? this.size,
       platform: platform ?? this.platform,
+      requestForDimension: requestForDimension ?? this.requestForDimension,
     );
   }
 
@@ -90,6 +94,9 @@ class ImageConfiguration {
   /// different platforms, to match local conventions e.g. for color matching or
   /// shadows.
   final TargetPlatform platform;
+
+  /// Only request for image dimension, no need to upload texture.
+  final bool requestForDimension;
 
   /// An image configuration that provides no additional information.
   ///
@@ -810,6 +817,50 @@ abstract class NetworkImage extends ImageProvider<NetworkImage> {
 
   @override
   ImageStreamCompleter load(NetworkImage key, DecoderCallback decode);
+}
+
+/// Fetches the given URL with parameters by external registered image adapter.
+abstract class ExternalAdapterImage extends ImageProvider<ExternalAdapterImage> {
+
+  /// Factory constructor.
+  factory ExternalAdapterImage(
+    String url,
+    {
+      int targetWidth,
+      int targetHeight,
+      ImageProvider placeholderProvider,
+      Map<String, String> parameters, // Parameters which affects image pixel data.
+      Map<String, String> extraInfo, // Extra info provided for external adapter.
+      bool releaseWhenOutOfScreen,
+    }
+  ) = external_adapter_image.ExternalAdapterImage;
+
+  /// URL
+  String get url;
+
+  /// Target width in points for image requiring.
+  int get targetWidth;
+
+  /// Target height in points for image requiring.
+  int get targetHeight;
+
+  /// A placeholder provider for convenience.
+  ImageProvider get placeholderProvider;
+
+  /// Parameters affecting final image bitmaps.
+  Map<String, String> get parameters;
+
+  /// Extra info which do not affect image pixel data.
+  Map<String, String> get extraInfo;
+
+  /// The image configuration.
+  ImageConfiguration get imageConfiguration;
+
+  /// True for auto-loading and auto-releasing texture according to image inscreen status.
+  bool get releaseWhenOutOfScreen;
+
+  @override
+  ImageStreamCompleter load(ExternalAdapterImage key, DecoderCallback decode);
 }
 
 /// Decodes the given [File] object as an image, associating it with the given

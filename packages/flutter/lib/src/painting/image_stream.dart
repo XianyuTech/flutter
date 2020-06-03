@@ -75,6 +75,7 @@ class ImageStreamListener {
     this.onImage, {
     this.onChunk,
     this.onError,
+    this.onImageInfo,
   }) : assert(onImage != null);
 
   /// Callback for getting notified that an image is available.
@@ -112,8 +113,11 @@ class ImageStreamListener {
   /// [onImage].
   final ImageErrorListener onError;
 
+  /// Callback providing basic image info without uploading texture.
+  final ImageInfoListener onImageInfo;
+
   @override
-  int get hashCode => hashValues(onImage, onChunk, onError);
+  int get hashCode => hashValues(onImage, onChunk, onError, onImageInfo);
 
   @override
   bool operator ==(Object other) {
@@ -122,7 +126,8 @@ class ImageStreamListener {
     return other is ImageStreamListener
         && other.onImage == onImage
         && other.onChunk == onChunk
-        && other.onError == onError;
+        && other.onError == onError
+        && other.onImageInfo == onImageInfo;
   }
 }
 
@@ -148,6 +153,9 @@ typedef ImageChunkListener = void Function(ImageChunkEvent event);
 /// Used in [ImageStreamListener], as well as by [ImageCache.putIfAbsent] and
 /// [precacheImage], to report errors.
 typedef ImageErrorListener = void Function(dynamic exception, StackTrace stackTrace);
+
+/// Callback used to provide basic image info without uploading texture.
+typedef ImageInfoListener = void Function(int width, int height, int frameCount, int durationInMs, int repetitionCount);
 
 /// An immutable notification of image bytes that have been incrementally loaded.
 ///

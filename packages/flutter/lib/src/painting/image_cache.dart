@@ -427,8 +427,12 @@ class ImageCache {
       }
       listenedOnce = true;
     }
+    void listenerOfImageInfo(int width, int height, int frameCount, int durationInMs, int repetitionCount) {
+      // A completer is only used for querying image dimension, we also put it in cache with zero size.
+      listener(null, false);
+    }
 
-    final ImageStreamListener streamListener = ImageStreamListener(listener);
+    final ImageStreamListener streamListener = ImageStreamListener(listener, onImageInfo: listenerOfImageInfo);
     if (maximumSize > 0 && maximumSizeBytes > 0) {
       _pendingImages[key] = _PendingImage(result, streamListener);
     } else {

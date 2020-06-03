@@ -4428,6 +4428,10 @@ typedef WidgetBuilder = Widget Function(BuildContext context);
 ///  * [TransitionBuilder], which is similar but also takes a child.
 typedef IndexedWidgetBuilder = Widget Function(BuildContext context, int index);
 
+/// A callback querying whether a list child should be added to RepaintBoundary.
+/// The callback result has higher priority than List's addRepaintBoundaries value.
+typedef IndexedWidgetNeedRepaintBoundary = bool Function(BuildContext context, int index);
+
 /// A builder that builds a widget given a child.
 ///
 /// The child should typically be part of the returned widget tree.

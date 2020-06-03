@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:ui' as ui show Image;
+import 'dart:ui' as ui show window;
 
 import 'box.dart';
 import 'object.dart';
@@ -387,5 +388,142 @@ class RenderImage extends RenderBox {
     properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));
     properties.add(DiagnosticsProperty<bool>('invertColors', invertColors));
     properties.add(EnumProperty<FilterQuality>('filterQuality', filterQuality));
+  }
+}
+
+/// On drawing image, AutoreleaseRenderImage will notify 
+/// image moving inside or outside screen event to owner.
+typedef SetNeedsImageCallback = void Function(bool value);
+
+/// RenderImage which supports detecting image intersecting screen bounds.
+class AutoreleaseRenderImage extends RenderImage {
+  /// Create AutoreleaseRenderImage instance.
+  AutoreleaseRenderImage(
+    SetNeedsImageCallback needsImageCallback,
+  {
+    ui.Image image,
+    int imageWidth,
+    int imageHeight,
+    double width,
+    double height,
+    double scale = 1.0,
+    Color color,
+    BlendMode colorBlendMode,
+    BoxFit fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect centerSlice,
+    bool matchTextDirection = false,
+    TextDirection textDirection,
+    bool invertColors = false,
+    FilterQuality filterQuality = FilterQuality.low,
+  }) : assert(needsImageCallback != null),
+      _needsImageCallback = needsImageCallback,
+      _imageWidth = imageWidth,
+      _imageHeight = imageHeight,
+    super(image: image,
+        width: width,
+        height: height,
+        scale: scale,
+        color: color,
+        colorBlendMode: colorBlendMode,
+        fit: fit,
+        alignment: alignment,
+        repeat: repeat,
+        centerSlice: centerSlice,
+        matchTextDirection: matchTextDirection,
+        textDirection: textDirection,
+        invertColors: invertColors,
+        filterQuality: filterQuality);
+
+  final SetNeedsImageCallback _needsImageCallback;
+  
+  /// Image width information may be provided for layout when _image is null.
+  int get imageWidth => _imageWidth;
+  int _imageWidth;
+  set imageWidth(int value) {
+    if (value == _imageWidth)
+      return;
+    _imageWidth = value;
+    markNeedsLayout();
+  }
+
+  /// Image height information may be provided for layout when _image is null.
+  int get imageHeight => _imageHeight;
+  int _imageHeight;
+  set imageHeight(int value) {
+    if (value == _imageHeight)
+      return;
+    _imageHeight = value;
+    markNeedsLayout();
+  }
+
+  @override
+  Size _sizeForConstraints(BoxConstraints constraints) {
+    // Folds the given |width| and |height| into |constraints| so they can all
+    // be treated uniformly.
+    constraints = BoxConstraints.tightFor(
+      width: _width,
+      height: _height,
+    ).enforce(constraints);
+
+    // No intrinsic from image itself or image pixel dimension info.
+    if (_image == null && (_imageWidth == null || _imageHeight == null))
+      return constraints.smallest;
+
+    // Use _image if not null
+    if (_image != null) {
+      return constraints.constrainSizeAndAttemptToPreserveAspectRatio(Size(
+        _image.width.toDouble() / _scale,
+        _image.height.toDouble() / _scale,
+      ));
+    }
+
+    // Or else use image dimension info.
+    return constraints.constrainSizeAndAttemptToPreserveAspectRatio(Size(
+      _imageWidth.toDouble(),
+      _imageHeight.toDouble(),
+    ));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    // Check if Rect(offset & size) intersects with screen bounds.
+    final double screenWidth = ui.window.physicalSize.width / ui.window.devicePixelRatio;
+    final double screenHeight = ui.window.physicalSize.height / ui.window.devicePixelRatio;
+
+    if (offset.dy >= screenHeight - 1 || offset.dy <= -size.height + 1 ||
+        offset.dx >= screenWidth - 1 || offset.dx <= -size.width + 1) {
+      // Not in screen
+      if (_image != null) {
+        _image = null;
+        // Notify owner
+        _needsImageCallback(false);
+      }
+      return;
+    }
+    else if (_image == null) {
+      // In screen but image is null, notify owner to download.
+      _needsImageCallback(true);
+      return;
+    }
+
+    _resolve();
+    assert(_resolvedAlignment != null);
+    assert(_flipHorizontally != null);
+    paintImage(
+      canvas: context.canvas,
+      rect: offset & size,
+      image: _image,
+      scale: _scale,
+      colorFilter: _colorFilter,
+      fit: _fit,
+      alignment: _resolvedAlignment,
+      centerSlice: _centerSlice,
+      repeat: _repeat,
+      flipHorizontally: _flipHorizontally,
+      invertColors: invertColors,
+      filterQuality: _filterQuality,
+    );
   }
 }

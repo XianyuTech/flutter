@@ -47,7 +47,7 @@ export 'package:flutter/painting.dart' show
 /// See also:
 ///
 ///  * [ImageProvider], which has an example showing how this might be used.
-ImageConfiguration createLocalImageConfiguration(BuildContext context, { Size size }) {
+ImageConfiguration createLocalImageConfiguration(BuildContext context, { Size size, bool requestForDimension }) {
   return ImageConfiguration(
     bundle: DefaultAssetBundle.of(context),
     devicePixelRatio: MediaQuery.of(context, nullOk: true)?.devicePixelRatio ?? 1.0,
@@ -55,6 +55,7 @@ ImageConfiguration createLocalImageConfiguration(BuildContext context, { Size si
     textDirection: Directionality.of(context),
     size: size,
     platform: defaultTargetPlatform,
+    requestForDimension: requestForDimension,
   );
 }
 
@@ -333,6 +334,8 @@ class Image extends StatefulWidget {
     this.matchTextDirection = false,
     this.gaplessPlayback = false,
     this.filterQuality = FilterQuality.low,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
   }) : assert(image != null),
        assert(alignment != null),
        assert(repeat != null),
@@ -396,12 +399,55 @@ class Image extends StatefulWidget {
     Map<String, String> headers,
     int cacheWidth,
     int cacheHeight,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
   }) : image = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, NetworkImage(src, scale: scale, headers: headers)),
        assert(alignment != null),
        assert(repeat != null),
        assert(matchTextDirection != null),
        assert(cacheWidth == null || cacheWidth > 0),
        assert(cacheHeight == null || cacheHeight > 0),
+       super(key: key);
+
+  /// Creates a widget that displays an [ImageStream] obtained from the registered external adapter.
+  Image.externalAdapter(
+    String src, {
+    Key key,
+    this.frameBuilder,
+    this.loadingBuilder,
+    this.errorBuilder,
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
+    this.width,
+    this.height,
+    this.color,
+    this.colorBlendMode,
+    this.fit,
+    this.alignment = Alignment.center,
+    this.repeat = ImageRepeat.noRepeat,
+    this.centerSlice,
+    this.matchTextDirection = false,
+    this.gaplessPlayback = false,
+    this.filterQuality = FilterQuality.low,
+
+    int targetWidth,
+    int targetHeight,
+    Map<String, String> parameters,
+    Map<String, String> extraInfo,
+    ImageProvider placeholderProvider,
+    bool releaseWhenOutOfScreen = false,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
+  }) : image = ExternalAdapterImage(src, 
+          targetWidth: targetWidth, 
+          targetHeight: targetHeight,
+          placeholderProvider: placeholderProvider,
+          parameters: parameters,
+          extraInfo: extraInfo,
+          releaseWhenOutOfScreen: releaseWhenOutOfScreen),
+       assert(alignment != null),
+       assert(repeat != null),
+       assert(matchTextDirection != null),
        super(key: key);
 
   /// Creates a widget that displays an [ImageStream] obtained from a [File].
@@ -449,6 +495,8 @@ class Image extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     int cacheWidth,
     int cacheHeight,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
   }) : image = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, FileImage(file, scale: scale)),
        loadingBuilder = null,
        assert(alignment != null),
@@ -613,6 +661,8 @@ class Image extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     int cacheWidth,
     int cacheHeight,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
   }) : image = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, scale != null
          ? ExactAssetImage(name, bundle: bundle, scale: scale, package: package)
          : AssetImage(name, bundle: bundle, package: package)
@@ -671,6 +721,8 @@ class Image extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     int cacheWidth,
     int cacheHeight,
+    this.temporaryWidthForLayout,
+    this.temporaryHeightForLayout,
   }) : image = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, MemoryImage(bytes, scale: scale)),
        loadingBuilder = null,
        assert(alignment != null),
@@ -993,9 +1045,20 @@ class Image extends StatefulWidget {
   /// Useful for images which do not contribute meaningful information to an
   /// application.
   final bool excludeFromSemantics;
-
   @override
-  _ImageState createState() => _ImageState();
+  _ImageState createState() {
+    bool autorelease = false;
+    if (image is ExternalAdapterImage) {
+      autorelease = (image as ExternalAdapterImage).releaseWhenOutOfScreen;
+    }
+    return _ImageState(autorelease);
+  }
+
+  /// Temporary dimension for layout which will not cause too many images loaded at once.
+  final double temporaryWidthForLayout;
+
+  /// Temporary dimension for layout which will not cause too many images loaded at once.
+  final double temporaryHeightForLayout;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -1019,6 +1082,11 @@ class Image extends StatefulWidget {
 }
 
 class _ImageState extends State<Image> with WidgetsBindingObserver {
+
+  _ImageState(bool releaseImageWhenOutsideScreen) {
+    _releaseImageWhenOutsideScreen = releaseImageWhenOutsideScreen;
+  }
+
   ImageStream _imageStream;
   ImageInfo _imageInfo;
   ImageChunkEvent _loadingProgress;
@@ -1030,6 +1098,12 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
   Object _lastException;
   StackTrace _lastStack;
 
+  bool _imageStreamForDimension = false;
+  bool _needsImage = true;
+  bool _releaseImageWhenOutsideScreen = false;
+  int _imageWidth;
+  int _imageHeight;
+
   @override
   void initState() {
     super.initState();
@@ -1039,22 +1113,72 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    assert(_imageStream != null);
     WidgetsBinding.instance.removeObserver(this);
     _stopListeningToStream();
     _scrollAwareContext.dispose();
     super.dispose();
   }
 
+  void __setNeedsImage(bool value) {
+    _needsImage = value;
+    if (value) {
+      // If no image stream or last stream is only for image dimension, we request image for texture.
+      if (_imageStream == null || _imageStreamForDimension) {
+        _resolveImage(false);
+        if (TickerMode.of(context))
+          _listenToStream();
+        else
+          _stopListeningToStream();        
+      }
+    }
+    else {
+      _stopListeningToStream();
+      setState(() {
+        _imageInfo = null;
+        _loadingProgress = null;
+        _frameNumber = 0;
+        _wasSynchronouslyLoaded = false;
+      });
+      _imageStream = null;
+    }
+  }
+
+  void _setNeedsImage(bool value) {
+    Future<void>(() {
+      __setNeedsImage(value);
+    });
+  }
+
+  void _refresh() {
+    if (_needsImage) {
+      __setNeedsImage(false);
+      __setNeedsImage(true);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     _updateInvertColors();
-    _resolveImage();
 
-    if (TickerMode.of(context))
-      _listenToStream();
-    else
-      _stopListeningToStream();
+    if (_releaseImageWhenOutsideScreen) {
+      // If _releaseImageWhenOutsideScreen is true, we check widget's width and height
+      // firstly. If any is null, we request for image size only so that layout would 
+      // work properly. Then if image is drawn inside screen, we request image and texture.
+      if (widget.width == null || widget.height == null) {
+        if (widget.temporaryWidthForLayout == null && widget.temporaryHeightForLayout == null) {
+          _resolveImage(true);
+          _listenToStream();
+        }
+      }
+    }
+    else {
+      _resolveImage(false);
+
+      if (TickerMode.of(context))
+        _listenToStream();
+      else
+        _stopListeningToStream();
+    }
 
     super.didChangeDependencies();
   }
@@ -1062,13 +1186,22 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(Image oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_isListeningToStream &&
-        (widget.loadingBuilder == null) != (oldWidget.loadingBuilder == null)) {
-      _imageStream.removeListener(_getListener(oldWidget.loadingBuilder));
-      _imageStream.addListener(_getListener());
+    if (_releaseImageWhenOutsideScreen) {
+      if ((_isListeningToStream &&
+          (widget.loadingBuilder == null) != (oldWidget.loadingBuilder == null)) || 
+          widget.image != oldWidget.image) {
+        _refresh();
+      }
     }
-    if (widget.image != oldWidget.image)
-      _resolveImage();
+    else {
+      if (_isListeningToStream &&
+          (widget.loadingBuilder == null) != (oldWidget.loadingBuilder == null)) {
+        _imageStream.removeListener(_getListener(oldWidget.loadingBuilder));
+        _imageStream.addListener(_getListener());
+      }
+      if (widget.image != oldWidget.image)
+        _resolveImage(false);
+    }
   }
 
   @override
@@ -1081,7 +1214,12 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
 
   @override
   void reassemble() {
-    _resolveImage(); // in case the image cache was flushed
+    if (_releaseImageWhenOutsideScreen) {
+      _refresh();
+    }
+    else {
+      _resolveImage(false); // in case the image cache was flushed
+    }
     super.reassemble();
   }
 
@@ -1090,17 +1228,20 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
         ?? SemanticsBinding.instance.accessibilityFeatures.invertColors;
   }
 
-  void _resolveImage() {
+  void _resolveImage(bool requestForDimension) {
     final ScrollAwareImageProvider provider = ScrollAwareImageProvider<dynamic>(
       context: _scrollAwareContext,
       imageProvider: widget.image,
     );
+  
     final ImageStream newStream =
       provider.resolve(createLocalImageConfiguration(
         context,
         size: widget.width != null && widget.height != null ? Size(widget.width, widget.height) : null,
+        requestForDimension: requestForDimension,
       ));
     assert(newStream != null);
+    _imageStreamForDimension = requestForDimension;
     _updateSourceStream(newStream);
   }
 
@@ -1111,6 +1252,7 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
     return ImageStreamListener(
       _handleImageFrame,
       onChunk: loadingBuilder == null ? null : _handleImageChunk,
+      onImageInfo: _handleImageInfo,
       onError: widget.errorBuilder != null
         ? (dynamic error, StackTrace stackTrace) {
             setState(() {
@@ -1123,11 +1265,24 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
   }
 
   void _handleImageFrame(ImageInfo imageInfo, bool synchronousCall) {
+    if (imageInfo != null && imageInfo.image != null) {
+      // We also have image dimension now.
+      _imageWidth = imageInfo.image.width.toInt();
+      _imageHeight = imageInfo.image.height.toInt();
+    }
     setState(() {
       _imageInfo = imageInfo;
       _loadingProgress = null;
       _frameNumber = _frameNumber == null ? 0 : _frameNumber + 1;
       _wasSynchronouslyLoaded |= synchronousCall;
+    });
+  }
+
+  void _handleImageInfo(int width, int height, int frameCount, int durationInMs, int repetitionCount) {
+    // We get image dimension, notify render object to perform layout.
+    setState(() {
+      _imageWidth = width;
+      _imageHeight = height;
     });
   }
 
@@ -1183,7 +1338,25 @@ class _ImageState extends State<Image> with WidgetsBindingObserver {
       return widget.errorBuilder(context, _lastException, _lastStack);
     }
 
-    Widget result = RawImage(
+    Widget result = _releaseImageWhenOutsideScreen ?  
+    AutoreleaseRawImage(
+        _setNeedsImage,
+        image: _imageInfo?.image,
+        imageWidth: _imageWidth,
+        imageHeight: _imageHeight,
+        width: widget.width ?? (_imageWidth != null ? null : widget.temporaryWidthForLayout),
+        height: widget.height ?? (_imageHeight != null ? null : widget.temporaryHeightForLayout),
+        scale: _imageInfo?.scale ?? 1.0,
+        color: widget.color,
+        colorBlendMode: widget.colorBlendMode,
+        fit: widget.fit,
+        alignment: widget.alignment,
+        repeat: widget.repeat,
+        centerSlice: widget.centerSlice,
+        matchTextDirection: widget.matchTextDirection,
+        invertColors: _invertColors,
+        filterQuality: widget.filterQuality,
+    ) : RawImage(
       image: _imageInfo?.image,
       width: widget.width,
       height: widget.height,
