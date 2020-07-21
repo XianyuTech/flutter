@@ -178,8 +178,7 @@ class ExternalAdapterImageStreamCompleter extends ImageStreamCompleter {
       }
       return;
     }
-    final Duration delay = _frameDuration - (timestamp - _shownTimestamp);
-    _timer = Timer(delay, () {
+    _timer = Timer(Duration.zero, () {
       _scheduleAppFrame();
     });
   }
