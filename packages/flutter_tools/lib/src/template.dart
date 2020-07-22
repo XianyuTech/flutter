@@ -185,7 +185,7 @@ class Template {
         }
       }
 
-      context["FLUTTER_STORAGE_BASE_URL"] = Platform.environment["FLUTTER_STORAGE_BASE_URL"]?.trim()??"http://flutter-storage.alibaba-inc.com";
+      context["FLUTTER_STORAGE_BASE_URL"] = Platform.environment["FLUTTER_STORAGE_BASE_URL"]?.trim()??"http://flutter-storage.alibaba-inc.com/taobao";
 
       fileCount++;
 
