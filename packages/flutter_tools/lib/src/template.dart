@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'package:meta/meta.dart';
 
 import 'base/common.dart';
@@ -10,7 +11,6 @@ import 'cache.dart';
 import 'dart/package_map.dart';
 import 'dart/pub.dart';
 import 'globals.dart' as globals hide fs;
-import 'dart:io';
 
 /// Expands templates in a directory to a destination. All files that must
 /// undergo template expansion should end with the '.tmpl' extension. All files
@@ -185,7 +185,7 @@ class Template {
         }
       }
 
-      context["FLUTTER_STORAGE_BASE_URL"] = Platform.environment["FLUTTER_STORAGE_BASE_URL"]?.trim()??"http://flutter-storage.alibaba-inc.com/taobao";
+      context['FLUTTER_STORAGE_BASE_URL'] = Platform.environment['FLUTTER_STORAGE_BASE_URL']?.trim()??'http://flutter-storage.alibaba-inc.com/taobao';
 
       fileCount++;
 
