@@ -488,6 +488,60 @@ end
         '$xcodeBuildConfiguration-iphonesimulator',
       );
 
+      Future<void> createFrameworkFromStaticLibrary(String iphoneLibraryPath, String iphoneSimulatorLibraryPath, String publicHeadersPath,
+          String targetFrameworkPath) async{
+        final Directory targetFramework = globals.fs.directory(targetFrameworkPath);
+        if (targetFramework.existsSync()) {
+          throwToolExit('Unable to create framework ${globals.fs.path.basename(targetFrameworkPath)} '
+              'as existing already');
+        }
+        targetFramework.createSync(recursive: true);
+        final String libraryName = globals.fs.path.basenameWithoutExtension(targetFrameworkPath);
+        final String universalBinary = globals.fs.path.join(targetFrameworkPath,
+            libraryName);
+        globals.fs.file(iphoneLibraryPath).copySync(universalBinary);
+        if (iphoneSimulatorLibraryPath != null && globals.fs.file(iphoneSimulatorLibraryPath).existsSync()) {
+          final List<String> lipoCommand = <String>[
+            'xcrun',
+            'lipo',
+            '-create',
+            universalBinary,
+            iphoneSimulatorLibraryPath,
+            '-output',
+            universalBinary
+          ];
+
+          await processUtils.run(
+            lipoCommand,
+            workingDirectory: targetFrameworkPath,
+            allowReentrantFlutter: false,
+          );
+        }
+        final List<FileSystemEntity> lists = await globals.fs.directory(publicHeadersPath).
+          list(recursive: true, followLinks: true).toList();
+        for (final FileSystemEntity fileSystemEntity in lists) {
+          final String filePath = fileSystemEntity.path;
+          final String relativePath = globals.fs.path.relative(filePath,
+              from: publicHeadersPath);
+          final String targetFilePath = globals.fs.path.join(targetFrameworkPath,
+              'Headers', relativePath);
+          globals.fs.directory(targetFilePath).parent.createSync(recursive: true);
+          globals.fs.file(filePath).copySync(targetFilePath);
+        }
+      }
+
+      Map<String, String> getPluginsInfo () {
+        final Map<String, String> pluginNamePathMap = <String, String>{};
+        for (final String plugin in _project.flutterPluginsFile.readAsLinesSync()) {
+          final List<String> pluginParts = plugin.split('=');
+          if (pluginParts.length != 2) {
+            continue;
+          }
+          pluginNamePathMap[pluginParts[0]]=pluginParts[1];
+        }
+        return pluginNamePathMap;
+      }
+
       final Iterable<Directory> products = iPhoneBuildConfiguration
         .listSync(followLinks: false)
         .whereType<Directory>();
@@ -495,6 +549,21 @@ end
         for (final FileSystemEntity podProduct in builtProduct.listSync(followLinks: false)) {
           final String podFrameworkName = podProduct.basename;
           if (globals.fs.path.extension(podFrameworkName) != '.framework') {
+            if (globals.fs.path.extension(podFrameworkName) == '.a') {
+              final String binaryName = podFrameworkName.substring('lib'.length, podFrameworkName.length-2);
+              final Map<String, String> pluginNamePathMap = getPluginsInfo();
+              if (!pluginNamePathMap.containsKey(binaryName) && binaryName != 'FlutterPluginRegistrant') {
+                continue;
+              }
+              final String publicHeadersPath = globals.fs.path.join(_project.ios.hostAppRoot.childDirectory('Pods').path,
+              'Headers', 'Public', binaryName);
+              final String targetFrameworkPath = globals.fs.path.join(iPhoneBuildOutput.parent.path, binaryName+'.framework');
+              String expectedX8664Binary;
+              if (mode == BuildMode.debug) {
+                expectedX8664Binary = simulatorBuildConfiguration.childDirectory(binaryName).childFile('lib$binaryName.a').path;
+              }
+              await createFrameworkFromStaticLibrary(podProduct.path, expectedX8664Binary, publicHeadersPath, targetFrameworkPath);
+            }
             continue;
           }
           final String binaryName = globals.fs.path.basenameWithoutExtension(podFrameworkName);
