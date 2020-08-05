@@ -527,7 +527,7 @@ end
         '$xcodeBuildConfiguration-iphonesimulator',
       );
 
-      Future<void> createFrameworkFromStaticLibrary(String staticLibraryPath, String publicHeadersPath,
+      Future<void> createFrameworkFromStaticLibrary(String iphoneLibraryPath, String iphoneSimulatorLibraryPath, String publicHeadersPath,
           String targetFrameworkPath) async{
         final Directory targetFramework = globals.fs.directory(targetFrameworkPath);
         if (targetFramework.existsSync()) {
@@ -536,8 +536,26 @@ end
         }
         targetFramework.createSync(recursive: true);
         final String libraryName = globals.fs.path.basenameWithoutExtension(targetFrameworkPath);
-        globals.fs.file(staticLibraryPath).copySync(globals.fs.path.join(targetFrameworkPath,
-            libraryName));
+        final String universalBinary = globals.fs.path.join(targetFrameworkPath,
+            libraryName);
+        globals.fs.file(iphoneLibraryPath).copySync(universalBinary);
+        if (iphoneSimulatorLibraryPath != null && globals.fs.file(iphoneSimulatorLibraryPath).existsSync()) {
+          final List<String> lipoCommand = <String>[
+            'xcrun',
+            'lipo',
+            '-create',
+            universalBinary,
+            iphoneSimulatorLibraryPath,
+            '-output',
+            universalBinary
+          ];
+
+          await processUtils.run(
+            lipoCommand,
+            workingDirectory: targetFrameworkPath,
+            allowReentrantFlutter: false,
+          );
+        }
         final List<FileSystemEntity> lists = await globals.fs.directory(publicHeadersPath).
           list(recursive: true, followLinks: true).toList();
         for (final FileSystemEntity fileSystemEntity in lists) {
@@ -571,15 +589,19 @@ end
           final String podFrameworkName = podProduct.basename;
           if (globals.fs.path.extension(podFrameworkName) != '.framework') {
             if (globals.fs.path.extension(podFrameworkName) == '.a') {
-              final String libraryName = podFrameworkName.substring('lib'.length, podFrameworkName.length-2);
+              final String binaryName = podFrameworkName.substring('lib'.length, podFrameworkName.length-2);
               final Map<String, String> pluginNamePathMap = getPluginsInfo();
-              if (!pluginNamePathMap.containsKey(libraryName) && libraryName != 'FlutterPluginRegistrant') {
+              if (!pluginNamePathMap.containsKey(binaryName) && binaryName != 'FlutterPluginRegistrant') {
                 continue;
               }
               final String publicHeadersPath = globals.fs.path.join(_project.ios.hostAppRoot.childDirectory('Pods').path,
-              'Headers', 'Public', libraryName);
-              final String targetFrameworkPath = globals.fs.path.join(iPhoneBuildOutput.parent.path, libraryName+'.framework');
-              await createFrameworkFromStaticLibrary(podProduct.path, publicHeadersPath, targetFrameworkPath);
+              'Headers', 'Public', binaryName);
+              final String targetFrameworkPath = globals.fs.path.join(iPhoneBuildOutput.parent.path, binaryName+'.framework');
+              String expectedX8664Binary;
+              if (mode == BuildMode.debug) {
+                expectedX8664Binary = simulatorBuildConfiguration.childDirectory(binaryName).childFile('lib$binaryName.a').path;
+              }
+              await createFrameworkFromStaticLibrary(podProduct.path, expectedX8664Binary, publicHeadersPath, targetFrameworkPath);
             }
             continue;
           }
