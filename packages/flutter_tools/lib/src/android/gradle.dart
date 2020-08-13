@@ -578,6 +578,10 @@ Future<void> buildGradleAar({
     command.add('-Ptarget-platform=$targetPlatforms');
   }
 
+  if (androidBuildInfo.buildInfo.extraGenSnapshotOptions != null) {
+    command.add("-Pextra-gen-snapshot-options=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
+  }
+
   command.add(aarTask);
 
   final Stopwatch sw = Stopwatch()..start();
