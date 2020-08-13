@@ -52,6 +52,7 @@ class BuildIOSFrameworkCommand extends BuildSubCommand {
     addSplitDebugInfoOption();
     addDartObfuscationOption();
     usesExtraFrontendOptions();
+    usesExtraGenSnapshotOptions();
     argParser
       ..addFlag('debug',
         negatable: true,
@@ -125,13 +126,16 @@ class BuildIOSFrameworkCommand extends BuildSubCommand {
     final List<BuildInfo> buildModes = <BuildInfo>[];
 
     if (boolArg('debug')) {
-      buildModes.add(BuildInfo.debug);
+      final BuildInfo buildInfo = BuildInfo.debug;
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
     }
     if (boolArg('profile')) {
-      buildModes.add(BuildInfo.profile);
+      final BuildInfo buildInfo = BuildInfo.profile;
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
     }
     if (boolArg('release')) {
-      buildModes.add(BuildInfo.release);
+      final BuildInfo buildInfo = BuildInfo.release;
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
     }
 
     return buildModes;

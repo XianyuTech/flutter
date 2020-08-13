@@ -38,6 +38,7 @@ class BuildAarCommand extends BuildSubCommand {
     usesFlavorOption();
     usesBuildNumberOption();
     usesPubOption();
+    usesExtraGenSnapshotOptions();
     argParser
       ..addMultiOption(
         'target-platform',
@@ -105,7 +106,7 @@ class BuildAarCommand extends BuildSubCommand {
     for (final String buildMode in const <String>['debug', 'profile', 'release']) {
       if (boolArg(buildMode)) {
         androidBuildInfo.add(AndroidBuildInfo(
-          BuildInfo(BuildMode.fromName(buildMode), stringArg('flavor'), treeShakeIcons: boolArg('tree-shake-icons')),
+          BuildInfo(BuildMode.fromName(buildMode), stringArg('flavor'), treeShakeIcons: boolArg('tree-shake-icons'), extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')),
           targetArchs: targetArchitectures,
         ));
       }
