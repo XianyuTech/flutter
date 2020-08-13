@@ -227,6 +227,11 @@ List<String> _xcodeBuildSettingsLines({
   for (final MapEntry<String, String> config in buildInfo.toEnvironmentConfig().entries) {
     xcodeBuildSettings.add('${config.key}=${config.value}');
   }
+
+  if (buildInfo.extraGenSnapshotOptions?.isNotEmpty ?? false) {
+    xcodeBuildSettings.add('EXTRA_GEN_SNAPSHOT_OPTIONS=${buildInfo.extraGenSnapshotOptions.join(',')}');
+  }
+
   return xcodeBuildSettings;
 }
 

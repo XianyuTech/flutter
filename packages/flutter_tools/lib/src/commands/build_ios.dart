@@ -39,6 +39,7 @@ class BuildIOSCommand extends BuildSubCommand {
     addBundleSkSLPathOption(hide: !verboseHelp);
     addNullSafetyModeOptions(hide: !verboseHelp);
     usesAnalyzeSizeFlag();
+    usesExtraGenSnapshotOptions();
     argParser
       ..addFlag('config-only',
         help: 'Update the project configuration without performing a build. '

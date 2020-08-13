@@ -55,6 +55,7 @@ class BuildIOSFrameworkCommand extends BuildSubCommand {
     addNullSafetyModeOptions(hide: !verboseHelp);
     addEnableExperimentation(hide: !verboseHelp);
 
+    usesExtraGenSnapshotOptions();
     argParser
       ..addFlag('debug',
         negatable: true,
