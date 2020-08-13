@@ -56,6 +56,21 @@ abstract class AssetBundle {
   });
 }
 
+void copyLicense(File file) {
+  final String originalFullPath = file.path;
+  final String licenseName = globals.fs.path.basename(originalFullPath);
+  final String licenseFolder = globals.fs.path.dirname(originalFullPath);
+  final String targetLicenseFolder = globals.fs.path.join(getBuildDirectory(), 'LICENSES', 'items', licenseFolder.replaceAll(globals.fs.path.separator, '_'));
+  if (!globals.fs.directory(targetLicenseFolder).existsSync()) {
+    globals.fs.directory(targetLicenseFolder).createSync(recursive: true);
+  }
+  file.copySync(globals.fs.path.join(targetLicenseFolder, licenseName));
+}
+
+void saveCombinedLicense(String licenseContent, String name) {
+  globals.fs.file(globals.fs.path.join(getBuildDirectory(), 'LICENSES', name)).writeAsStringSync(licenseContent);
+}
+
 class _ManifestAssetBundleFactory implements AssetBundleFactory {
   const _ManifestAssetBundleFactory();
 
@@ -254,7 +269,10 @@ class _ManifestAssetBundle implements AssetBundle {
 
     // TODO(ianh): Only do the following line if we've changed packages or if our LICENSE file changed
     final LicenseResult licenseResult = licenseCollector.obtainLicenses(packageMap);
-    entries[_license] = DevFSStringContent(licenseResult.combinedLicenses);
+    // Save the license out of final product
+    // entries[_license] = DevFSStringContent(licenseResult.combinedLicenses);
+    saveCombinedLicense(licenseResult.combinedLicenses, _license);
+
     additionalDependencies = licenseResult.dependencies;
 
     return 0;
@@ -398,6 +416,8 @@ class LicenseCollector {
       if (!file.existsSync()) {
         continue;
       }
+
+      copyLicense(file);
 
       dependencies.add(file);
       final List<String> rawLicenses = file
