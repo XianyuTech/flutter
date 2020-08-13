@@ -58,6 +58,21 @@ abstract class AssetBundle {
   });
 }
 
+void copyLicense(File file) {
+  final String originalFullPath = file.path;
+  final String licenseName = globals.fs.path.basename(originalFullPath);
+  final String licenseFolder = globals.fs.path.dirname(originalFullPath);
+  final String targetLicenseFolder = globals.fs.path.join(getBuildDirectory(), 'LICENSES', 'items', licenseFolder.replaceAll(globals.fs.path.separator, '_'));
+  if (!globals.fs.directory(targetLicenseFolder).existsSync()) {
+    globals.fs.directory(targetLicenseFolder).createSync(recursive: true);
+  }
+  file.copySync(globals.fs.path.join(targetLicenseFolder, licenseName));
+}
+
+void saveCombinedLicense(String licenseContent, String name) {
+  globals.fs.file(globals.fs.path.join(getBuildDirectory(), 'LICENSES', name)).writeAsStringSync(licenseContent);
+}
+
 class _ManifestAssetBundleFactory implements AssetBundleFactory {
   const _ManifestAssetBundleFactory();
 
@@ -303,7 +318,8 @@ class ManifestAssetBundle implements AssetBundle {
 
     _setIfChanged(_kAssetManifestJson, assetManifest);
     _setIfChanged(kFontManifestJson, fontManifest);
-    _setIfChanged(_kNoticeFile, licenses);
+    // _setIfChanged(_kNoticeFile, licenses);
+    saveCombinedLicense(licenseResult.combinedLicenses, 'LICENSE');
     return 0;
   }
 
@@ -459,6 +475,8 @@ class LicenseCollector {
       if (!file.existsSync()) {
         continue;
       }
+
+      copyLicense(file);
 
       dependencies.add(file);
       final List<String> rawLicenses = file
