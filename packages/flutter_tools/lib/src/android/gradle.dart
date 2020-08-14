@@ -578,7 +578,7 @@ Future<void> buildGradleAar({
     command.add('-Ptarget-platform=$targetPlatforms');
   }
 
-  if (androidBuildInfo.buildInfo.extraGenSnapshotOptions != null) {
+  if (androidBuildInfo.buildInfo.extraGenSnapshotOptions?.isNotEmpty ?? false) {
     command.add("-Pextra-gen-snapshot-options=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
   }
 
