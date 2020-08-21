@@ -314,8 +314,9 @@ Future<void> buildGradleApp({
   if (buildInfo.extraFrontEndOptions != null) {
     command.add('-Pextra-front-end-options=${buildInfo.extraFrontEndOptions.join(',')}');
   }
-  if (buildInfo.extraGenSnapshotOptions != null) {
-    command.add('-Pextra-gen-snapshot-options=${buildInfo.extraGenSnapshotOptions}');
+
+  if (buildInfo.extraGenSnapshotOptions?.isNotEmpty ?? false) {
+    command.add("-Pextra-gen-snapshot-options=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
   }
   if (buildInfo.fileSystemRoots != null && buildInfo.fileSystemRoots.isNotEmpty) {
     command.add('-Pfilesystem-roots=${buildInfo.fileSystemRoots.join('|')}');

@@ -29,6 +29,7 @@ class BuildIOSCommand extends BuildSubCommand {
     addDartObfuscationOption();
     usesDartDefineOption();
     usesExtraFrontendOptions();
+    usesExtraGenSnapshotOptions();
     argParser
       ..addFlag('simulator',
         help: 'Build for the iOS simulator instead of the device.',

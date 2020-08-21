@@ -188,6 +188,7 @@ BuildApp() {
     -dEnableBitcode="${bitcode_flag}"                                     \
     --DartDefines="${DART_DEFINES}"                                       \
     -dExtraFrontEndOptions="${EXTRA_FRONT_END_OPTIONS}"                   \
+    --ExtraGenSnapshotOptions="${EXTRA_GEN_SNAPSHOT_OPTIONS}"             \
     "${build_mode}_ios_bundle_flutter_assets"
 
   if [[ $? -ne 0 ]]; then
