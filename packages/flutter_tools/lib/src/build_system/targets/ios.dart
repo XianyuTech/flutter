@@ -47,7 +47,8 @@ abstract class AotAssemblyBase extends Target {
       throw MissingDefineException(kTargetPlatform, 'aot_assembly');
     }
     final List<String> extraGenSnapshotOptions = environment
-      .defines[kExtraGenSnapshotOptions]?.split(',') ?? const <String>[];
+      .defines[kExtraGenSnapshotOptions]?.split(',')
+      ?.where((String ele){return ele.isNotEmpty;})?.toList() ?? const <String>[];
     final bool bitcode = environment.defines[kBitcodeFlag] == 'true';
     final BuildMode buildMode = getBuildModeForName(environment.defines[kBuildMode]);
     final TargetPlatform targetPlatform = getTargetPlatformForName(environment.defines[kTargetPlatform]);
