@@ -576,6 +576,36 @@ class FlutterPlugin implements Plugin<Project> {
         return "${targetArch}-release"
     }
 
+    private static Project locateAdd2AppHostProject(rootProject) {
+        // Find app subproject as default
+        Project appProject = rootProject.findProject(':app')
+        // A typical gradle.properties setting for add2app is given as below:
+        // flutter.add2app.hostapp=:HostAppName:SubProjectName
+        String add2appPropertyName='flutter.add2app.hostapp'
+        if (rootProject.hasProperty(add2appPropertyName)) {
+            String add2appPropertyKeypath = rootProject.property(add2appPropertyName)
+            def keypaths = add2appPropertyKeypath.split(':')
+            int keypathSize = keypaths.size()
+            if (keypathSize >= 2 && keypathSize <=3) {
+                String expecterRootProject = keypaths[1]
+                if (expecterRootProject == rootProject.name) {
+                    // RootProject if the keypaths matches
+                    if (keypathSize == 2) {
+                        return rootProject;
+                    }
+                    else {
+                        String subprojectName = keypaths[2];
+                        Project subProject = rootProject.findProject(subprojectName)
+                        if (subProject != null) {
+                            return subProject
+                        }
+                    }
+                }
+            }
+        }
+        return appProject;
+    }
+
     private void addFlutterTasks(Project project) {
         if (project.state.failure) {
             return
@@ -728,7 +758,7 @@ class FlutterPlugin implements Plugin<Project> {
                 return
             }
             // Flutter module included as a subproject in add to app.
-            Project appProject = project.rootProject.findProject(':app')
+            Project appProject = locateAdd2AppHostProject(project.rootProject);
             assert appProject != null
             appProject.afterEvaluate {
                 assert appProject.android != null
@@ -755,9 +785,12 @@ class FlutterPlugin implements Plugin<Project> {
                     if (buildModeFor(appProjectVariant.buildType) != variantBuildMode) {
                         return
                     }
-                    Task mergeAssets = project
-                        .tasks
-                        .findByPath(":app:merge${appProjectVariant.name.capitalize()}Assets")
+                    String taskPrefix = ":${appProject.name}"
+                    if (appProject == project.rootProject) {
+                        taskPrefix=""
+                    }
+                    Task mergeAssets = appProject
+                        .tasks.findByPath("${taskPrefix}:merge${appProjectVariant.name.capitalize()}Assets")
                     assert mergeAssets
                     mergeAssets.dependsOn(copyFlutterAssetsTask)
                 }
