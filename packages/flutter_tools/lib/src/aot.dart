@@ -92,6 +92,10 @@ class AotBuilder {
           kExtraGenSnapshotOptions: buildInfo.extraGenSnapshotOptions.join(','),
         if (buildInfo?.extraFrontEndOptions?.isNotEmpty ?? false)
           kExtraFrontEndOptions: buildInfo.extraFrontEndOptions.join(','),
+        if (buildInfo?.splitDebugInfoPath?.isNotEmpty ?? false)
+          kSplitDebugInfo: buildInfo.splitDebugInfoPath,
+        if (buildInfo?.dartObfuscation ?? false)
+          kDartObfuscation: buildInfo.dartObfuscation.toString(),
         if (platform == TargetPlatform.ios)
           kIosArchs: iosBuildArchs.map(getNameForDarwinArch).join(' ')
       },

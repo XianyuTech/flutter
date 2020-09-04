@@ -23,6 +23,7 @@ import '../flutter_manifest.dart';
 import '../globals.dart' as globals;
 import '../project.dart';
 import '../reporting/reporting.dart';
+import '../runner/flutter_command.dart' show FlutterOptions;
 import 'android_sdk.dart';
 import 'gradle_errors.dart';
 import 'gradle_utils.dart';
@@ -316,7 +317,7 @@ Future<void> buildGradleApp({
   }
 
   if (buildInfo.extraGenSnapshotOptions?.isNotEmpty ?? false) {
-    command.add("-Pextra-gen-snapshot-options=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
+    command.add("-P${FlutterOptions.kExtraGenSnapshotOptions}=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
   }
   if (buildInfo.fileSystemRoots != null && buildInfo.fileSystemRoots.isNotEmpty) {
     command.add('-Pfilesystem-roots=${buildInfo.fileSystemRoots.join('|')}');
@@ -344,13 +345,13 @@ Future<void> buildGradleApp({
     command.add('-Pfast-start=true');
   }
   if (androidBuildInfo.buildInfo.splitDebugInfoPath != null) {
-    command.add('-Psplit-debug-info=${androidBuildInfo.buildInfo.splitDebugInfoPath}');
+    command.add('-P${FlutterOptions.kSplitDebugInfoOption}=${androidBuildInfo.buildInfo.splitDebugInfoPath}');
   }
   if (androidBuildInfo.buildInfo.treeShakeIcons) {
     command.add('-Ptree-shake-icons=true');
   }
   if (androidBuildInfo.buildInfo.dartObfuscation) {
-    command.add('-Pdart-obfuscation=true');
+    command.add('-P${FlutterOptions.kDartObfuscationOption}=true');
   }
   command.add(assembleTask);
 
@@ -580,7 +581,14 @@ Future<void> buildGradleAar({
   }
 
   if (androidBuildInfo.buildInfo.extraGenSnapshotOptions?.isNotEmpty ?? false) {
-    command.add("-Pextra-gen-snapshot-options=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
+    command.add("-P${FlutterOptions.kExtraGenSnapshotOptions}=${androidBuildInfo.buildInfo.extraGenSnapshotOptions.join(',')}");
+  }
+
+  if (androidBuildInfo.buildInfo.splitDebugInfoPath?.isNotEmpty ?? false) {
+    command.add('-P${FlutterOptions.kSplitDebugInfoOption}=${androidBuildInfo.buildInfo.splitDebugInfoPath}');
+  }
+  if (androidBuildInfo.buildInfo.dartObfuscation ?? false) {
+    command.add('-P${FlutterOptions.kDartObfuscationOption}=true');
   }
 
   command.add(aarTask);

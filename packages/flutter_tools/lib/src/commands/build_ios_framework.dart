@@ -24,7 +24,7 @@ import '../macos/cocoapod_utils.dart';
 import '../macos/xcode.dart';
 import '../plugins.dart';
 import '../project.dart';
-import '../runner/flutter_command.dart' show DevelopmentArtifact, FlutterCommandResult;
+import '../runner/flutter_command.dart' show DevelopmentArtifact, FlutterCommandResult, FlutterOptions;
 import '../version.dart';
 import 'build.dart';
 
@@ -127,15 +127,15 @@ class BuildIOSFrameworkCommand extends BuildSubCommand {
 
     if (boolArg('debug')) {
       final BuildInfo buildInfo = BuildInfo.debug;
-      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg(FlutterOptions.kExtraGenSnapshotOptions),splitDebugInfoPath: stringArg(FlutterOptions.kSplitDebugInfoOption),dartObfuscation: boolArg(FlutterOptions.kDartObfuscationOption)));
     }
     if (boolArg('profile')) {
       final BuildInfo buildInfo = BuildInfo.profile;
-      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg(FlutterOptions.kExtraGenSnapshotOptions),splitDebugInfoPath: stringArg(FlutterOptions.kSplitDebugInfoOption),dartObfuscation: boolArg(FlutterOptions.kDartObfuscationOption)));
     }
     if (boolArg('release')) {
       final BuildInfo buildInfo = BuildInfo.release;
-      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')));
+      buildModes.add(BuildInfo(buildInfo.mode, buildInfo.flavor, treeShakeIcons: buildInfo.treeShakeIcons, extraGenSnapshotOptions: stringsArg(FlutterOptions.kExtraGenSnapshotOptions),splitDebugInfoPath: stringArg(FlutterOptions.kSplitDebugInfoOption),dartObfuscation: boolArg(FlutterOptions.kDartObfuscationOption)));
     }
 
     return buildModes;

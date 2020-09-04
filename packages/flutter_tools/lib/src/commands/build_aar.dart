@@ -13,7 +13,7 @@ import '../build_info.dart';
 import '../cache.dart';
 import '../project.dart';
 import '../reporting/reporting.dart';
-import '../runner/flutter_command.dart' show FlutterCommandResult;
+import '../runner/flutter_command.dart' show FlutterCommandResult, FlutterOptions;
 import 'build.dart';
 
 class BuildAarCommand extends BuildSubCommand {
@@ -39,6 +39,8 @@ class BuildAarCommand extends BuildSubCommand {
     usesBuildNumberOption();
     usesPubOption();
     usesExtraGenSnapshotOptions();
+    addSplitDebugInfoOption();
+    addDartObfuscationOption();
     argParser
       ..addMultiOption(
         'target-platform',
@@ -106,7 +108,7 @@ class BuildAarCommand extends BuildSubCommand {
     for (final String buildMode in const <String>['debug', 'profile', 'release']) {
       if (boolArg(buildMode)) {
         androidBuildInfo.add(AndroidBuildInfo(
-          BuildInfo(BuildMode.fromName(buildMode), stringArg('flavor'), treeShakeIcons: boolArg('tree-shake-icons'), extraGenSnapshotOptions: stringsArg('extra-gen-snapshot-options')),
+          BuildInfo(BuildMode.fromName(buildMode), stringArg('flavor'), treeShakeIcons: boolArg('tree-shake-icons'), extraGenSnapshotOptions: stringsArg(FlutterOptions.kExtraGenSnapshotOptions), splitDebugInfoPath: stringArg(FlutterOptions.kSplitDebugInfoOption), dartObfuscation:boolArg(FlutterOptions.kDartObfuscationOption)),
           targetArchs: targetArchitectures,
         ));
       }
