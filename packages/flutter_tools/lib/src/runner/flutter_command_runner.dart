@@ -27,6 +27,7 @@ import '../tester/flutter_tester.dart';
 
 const String kFlutterRootEnvironmentVariableName = 'FLUTTER_ROOT'; // should point to //flutter/ (root of flutter/flutter repo)
 const String kFlutterEngineEnvironmentVariableName = 'FLUTTER_ENGINE'; // should point to //engine/src/ (root of flutter/engine repo)
+const String kFlutterLocalEngineEnvironmentVariableName = 'LOCAL_ENGINE';
 const String kSnapshotFileName = 'flutter_tools.snapshot'; // in //flutter/bin/cache/
 const String kFlutterToolsScriptFileName = 'flutter_tools.dart'; // in //flutter/packages/flutter_tools/bin/
 const String kFlutterEnginePackageName = 'sky_engine';
@@ -400,10 +401,8 @@ class FlutterCommandRunner extends CommandRunner<void> {
   }
 
   EngineBuildPaths _findEngineBuildPath(ArgResults globalResults, String enginePath) {
-    String localEngine;
-    if (globalResults['local-engine'] != null) {
-      localEngine = globalResults['local-engine'] as String;
-    } else {
+    final String localEngine = (globalResults['local-engine'] ?? platform.environment[kFlutterLocalEngineEnvironmentVariableName]) as String;
+    if (localEngine == null) {
       throwToolExit(userMessages.runnerLocalEngineRequired, exitCode: 2);
     }
 
