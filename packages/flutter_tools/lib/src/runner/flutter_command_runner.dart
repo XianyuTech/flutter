@@ -401,7 +401,7 @@ class FlutterCommandRunner extends CommandRunner<void> {
   }
 
   EngineBuildPaths _findEngineBuildPath(ArgResults globalResults, String enginePath) {
-    final String localEngine = (globalResults['local-engine'] ?? platform.environment[kFlutterLocalEngineEnvironmentVariableName]) as String;
+    final String localEngine = (globalResults['local-engine'] ?? globals.platform.environment[kFlutterLocalEngineEnvironmentVariableName]) as String;
     if (localEngine == null) {
       throwToolExit(userMessages.runnerLocalEngineRequired, exitCode: 2);
     }
