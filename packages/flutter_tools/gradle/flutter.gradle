@@ -46,20 +46,20 @@ class FlutterPlugin implements Plugin<Project> {
     // The platforms that can be passed to the `--Ptarget-platform` flag.
     private static final String PLATFORM_ARM32  = "android-arm";
     private static final String PLATFORM_ARM64  = "android-arm64";
-    private static final String PLATFORM_X86    = "android-x86";
+    // private static final String PLATFORM_X86    = "android-x86";
     private static final String PLATFORM_X86_64 = "android-x64";
 
     // The ABI architectures.
     private static final String ARCH_ARM32      = "armeabi-v7a";
     private static final String ARCH_ARM64      = "arm64-v8a";
-    private static final String ARCH_X86        = "x86";
+    // private static final String ARCH_X86        = "x86";
     private static final String ARCH_X86_64     = "x86_64";
 
     // Maps platforms to ABI architectures.
     private static final Map PLATFORM_ARCH_MAP = [
         (PLATFORM_ARM32)    : ARCH_ARM32,
         (PLATFORM_ARM64)    : ARCH_ARM64,
-        (PLATFORM_X86)      : ARCH_X86,
+        // (PLATFORM_X86)      : ARCH_X86,
         (PLATFORM_X86_64)   : ARCH_X86_64,
     ]
 
@@ -69,7 +69,7 @@ class FlutterPlugin implements Plugin<Project> {
     private static final Map ABI_VERSION = [
         (ARCH_ARM32)        : 1,
         (ARCH_ARM64)        : 2,
-        (ARCH_X86)          : 3,
+        // (ARCH_X86)          : 3,
         (ARCH_X86_64)       : 4,
     ]
 
@@ -225,7 +225,7 @@ class FlutterPlugin implements Plugin<Project> {
         List<String> platforms = getTargetPlatforms().collect()
         // Debug mode includes x86 and x64, which are commonly used in emulators.
         if (flutterBuildMode == "debug" && !useLocalEngine()) {
-            platforms.add("android-x86")
+            // platforms.add("android-x86")
             platforms.add("android-x64")
         }
         platforms.each { platform ->
