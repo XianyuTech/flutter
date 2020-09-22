@@ -23,22 +23,18 @@ end
 #   end
 def install_flutter_engine_pod
   engine_dir = File.join(__dir__, 'engine')
-  if !File.exist?(engine_dir)
-    # Copy the debug engine to have something to link against if the xcode backend script has not run yet.
-    # CocoaPods will not embed the framework on pod install (before any build phases can generate) if the dylib does not exist.
-    debug_framework_dir = File.join(flutter_root, 'bin', 'cache', 'artifacts', 'engine', 'ios')
-    FileUtils.mkdir_p(engine_dir)
-    FileUtils.cp_r(File.join(debug_framework_dir, 'Flutter.framework'), engine_dir)
-    FileUtils.cp(File.join(debug_framework_dir, 'Flutter.podspec'), engine_dir)
+  if File.exist?(engine_dir)
+    FileUtils.remove_dir(engine_dir)
   end
-
-  # Keep pod path relative so it can be checked into Podfile.lock.
-  # Process will be run from project directory.
-  engine_pathname = Pathname.new engine_dir
-  project_directory_pathname = Pathname.new Dir.pwd
-  relative = engine_pathname.relative_path_from project_directory_pathname
-
-  pod 'Flutter', :path => relative.to_s, :inhibit_warnings => true
+  flutter_dir = flutter_framework_dir
+  if flutter_dir==nil
+    flutter_dir = File.join(flutter_root, 'bin', 'cache', 'artifacts', 'engine', 'ios')
+  end
+  FileUtils.ln_s(flutter_dir, engine_dir)
+  puts "#{flutter_dir}"
+  podspec = File.join(engine_dir,'Flutter.podspec')
+  puts "#{podspec}"
+  pod 'Flutter', :path => engine_dir.to_s, :inhibit_warnings => true
 end
 
 # Install Flutter plugin pods.
@@ -143,4 +139,18 @@ def flutter_root
       return p[:path]
     end
   }
+end
+
+def flutter_framework_dir
+  generated_xcode_build_settings = parse_KV_file(File.join(__dir__, 'Generated.xcconfig'))
+  if generated_xcode_build_settings.empty?
+    puts "Generated.xcconfig must exist. Make sure `flutter pub get` is executed in the Flutter module."
+    exit
+  end
+  generated_xcode_build_settings.map { |p|
+    if p[:name] == 'FLUTTER_FRAMEWORK_DIR'
+      return p[:path]
+    end
+  }
+  return nil;
 end

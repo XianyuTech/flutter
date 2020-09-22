@@ -42,7 +42,7 @@ def install_flutter_engine_pod
   if flutter_dir==nil
     flutter_dir = File.join(flutter_root, 'bin', 'cache', 'artifacts', 'engine', 'ios')
   end
-  FileUtils.ln_s(flutter_dir, engine_dir, force:true)
+  FileUtils.ln_s(flutter_dir, engine_dir)
 
   # Dir.foreach(flutter_framework_dir) do |file|
   #   FileUtils.ln_s(file, engine_dir, force:true)
