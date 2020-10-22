@@ -1,5 +1,4 @@
-group '{{androidIdentifier}}'
-version '1.0'
+// Generated file. Do not edit.
 
 buildscript {
     repositories {
@@ -14,7 +13,7 @@ buildscript {
     }
 }
 
-rootProject.allprojects {
+allprojects {
     repositories {
         //集团mvn仓库地址
         maven { url "http://mvnrepo.alibaba-inc.com/mvn/repository" }
@@ -25,15 +24,6 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
-
-android {
-    compileSdkVersion 29
-
-    defaultConfig {
-        minSdkVersion 16
-    }
-    lintOptions {
-        disable 'InvalidPackage'
-    }
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }

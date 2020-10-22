@@ -289,7 +289,7 @@ class Cache {
   String get storageBaseUrl {
     final String overrideUrl = _platform.environment['FLUTTER_STORAGE_BASE_URL'];
     if (overrideUrl == null) {
-      return 'https://storage.googleapis.com';
+      return 'http://flutter-storage.alibaba-inc.com/taobao';
     }
     // verify that this is a valid URI.
     try {

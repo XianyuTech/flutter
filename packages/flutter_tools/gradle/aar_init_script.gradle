@@ -56,10 +56,16 @@ void configureProject(Project project, String outputDir) {
     String storageUrl = System.getenv('FLUTTER_STORAGE_BASE_URL') ?: "https://storage.googleapis.com"
     // This is a Flutter plugin project. Plugin projects don't apply the Flutter Gradle plugin,
     // as a result, add the dependency on the embedding.
+    String ali_flutter_storage_base_url = System.getenv("FLUTTER_STORAGE_BASE_URL")
+    if (!ali_flutter_storage_base_url?.trim()) {
+        ali_flutter_storage_base_url = "http://flutter-storage.alibaba-inc.com/taobao"
+    }
+
     project.repositories {
         maven {
             url "$storageUrl/download.flutter.io"
         }
+        maven { url ali_flutter_storage_base_url}
     }
     String engineVersion = Paths.get(getFlutterRoot(project), "bin", "internal", "engine.version")
         .toFile().text.trim()

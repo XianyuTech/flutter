@@ -208,7 +208,7 @@ class FlutterPlugin implements Plugin<Project> {
 
         String ali_flutter_storage_base_url = System.getenv("FLUTTER_STORAGE_BASE_URL")
         if (!ali_flutter_storage_base_url?.trim()) {
-            ali_flutter_storage_base_url = "http://flutter-storage.alibaba-inc.com"
+            ali_flutter_storage_base_url = "http://flutter-storage.alibaba-inc.com/xianyu"
         }
 
         project.rootProject.allprojects {
@@ -216,6 +216,7 @@ class FlutterPlugin implements Plugin<Project> {
                 maven {
                     url repository
                 }
+                
                 maven {
                     url ali_flutter_storage_base_url
                 }

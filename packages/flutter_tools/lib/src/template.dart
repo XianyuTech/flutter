@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'package:meta/meta.dart';
 import 'package:package_config/package_config.dart';
 import 'package:package_config/package_config_types.dart';
@@ -222,6 +223,7 @@ class Template {
       }
 
       fileCount += 1;
+      context["FLUTTER_STORAGE_BASE_URL"] = Platform.environment["FLUTTER_STORAGE_BASE_URL"]?.trim()??"http://flutter-storage.alibaba-inc.com/taobao";
 
       finalDestinationFile.createSync(recursive: true);
       final File sourceFile = _fileSystem.file(absoluteSourcePath);

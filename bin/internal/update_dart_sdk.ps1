@@ -41,7 +41,8 @@ if ((Test-Path $engineStamp) -and ($engineVersion -eq (Get-Content $engineStamp)
 Write-Host "Downloading Dart SDK from Flutter engine $engineVersion..."
 $dartSdkBaseUrl = $Env:FLUTTER_STORAGE_BASE_URL
 if (-not $dartSdkBaseUrl) {
-    $dartSdkBaseUrl = "https://storage.googleapis.com"
+    #$dartSdkBaseUrl = "https://storage.googleapis.com"
+    $dartSdkBaseUrl = "http://flutter-storage.alibaba-inc.com/taobao"
 }
 $dartZipName = "dart-sdk-windows-x64.zip"
 $dartSdkUrl = "$dartSdkBaseUrl/flutter_infra/flutter/$engineVersion/$dartZipName"
