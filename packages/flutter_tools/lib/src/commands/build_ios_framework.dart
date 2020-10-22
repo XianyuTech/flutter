@@ -379,6 +379,10 @@ end
             kExtraGenSnapshotOptions: buildInfo.extraGenSnapshotOptions.join(','),
           if (buildInfo?.extraFrontEndOptions?.isNotEmpty ?? false)
             kExtraFrontEndOptions: buildInfo.extraFrontEndOptions.join(','),
+          if (buildInfo?.dartObfuscation ?? false)
+            kDartObfuscation: 'true',
+          if (buildInfo?.splitDebugInfoPath?.isNotEmpty ?? false)
+            kSplitDebugInfo: buildInfo.splitDebugInfoPath,
           kIosArchs: <DarwinArch>[DarwinArch.armv7, DarwinArch.arm64]
             .map(getNameForDarwinArch).join(' '),
         },
