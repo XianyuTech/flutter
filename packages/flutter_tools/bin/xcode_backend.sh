@@ -190,6 +190,7 @@ BuildApp() {
     -dExtraFrontEndOptions="${EXTRA_FRONT_END_OPTIONS}"                   \
     "${build_mode}_ios_bundle_flutter_assets"
 
+  echo "[XDEBUG]-Engine: ${flutter_engine_flag}--DartDefines:${DART_DEFINES}---Output:${derived_dir}" 
   if [[ $? -ne 0 ]]; then
     EchoError "Failed to package ${project_path}."
     exit -1
