@@ -826,6 +826,7 @@ abstract class ExternalAdapterImage extends ImageProvider<ExternalAdapterImage> 
   factory ExternalAdapterImage(
     String url,
     {
+      double scale,
       int targetWidth,
       int targetHeight,
       ImageProvider placeholderProvider,
@@ -837,6 +838,9 @@ abstract class ExternalAdapterImage extends ImageProvider<ExternalAdapterImage> 
 
   /// URL
   String get url;
+
+  /// Scale of final image for drawing.
+  double get scale;
 
   /// Target width in points for image requiring.
   int get targetWidth;

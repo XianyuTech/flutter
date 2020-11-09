@@ -481,8 +481,8 @@ class AutoreleaseRenderImage extends RenderImage {
 
     // Or else use image dimension info.
     return constraints.constrainSizeAndAttemptToPreserveAspectRatio(Size(
-      _imageWidth.toDouble(),
-      _imageHeight.toDouble(),
+      _imageWidth.toDouble() / _scale,
+      _imageHeight.toDouble() / _scale,
     ));
   }
 

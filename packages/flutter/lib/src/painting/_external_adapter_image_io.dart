@@ -168,7 +168,7 @@ class ExternalAdapterImageStreamCompleter extends ImageStreamCompleter {
     if (!hasListeners)
       return;
     if (_isFirstFrame() || _hasFrameDurationPassed(timestamp)) {
-      _emitFrame(ImageInfo(image: _nextFrame.image, scale: 1.0));
+      _emitFrame(ImageInfo(image: _nextFrame.image, scale: _key.scale));
       _shownTimestamp = timestamp;
       _frameDuration = _nextFrame.duration;
       _nextFrame = null;
@@ -258,7 +258,7 @@ class ExternalAdapterImageStreamCompleter extends ImageStreamCompleter {
       }
 
       // This is not an animated image, just return it and don't schedule more frames.
-      _emitFrame(ImageInfo(image: _nextFrame.image, scale: 1.0));
+      _emitFrame(ImageInfo(image: _nextFrame.image, scale: _key.scale));
       return;
     }
     else {
@@ -412,6 +412,7 @@ class ExternalAdapterImage extends image_provider.ImageProvider<image_provider.E
   ExternalAdapterImage(
     this.url,
     {
+      this.scale,
       this.targetWidth,
       this.targetHeight,
       this.placeholderProvider,
@@ -424,6 +425,9 @@ class ExternalAdapterImage extends image_provider.ImageProvider<image_provider.E
 
   @override
   final String url;
+
+  @override
+  final double scale;
 
   @override
   final int targetWidth;
@@ -447,8 +451,9 @@ class ExternalAdapterImage extends image_provider.ImageProvider<image_provider.E
   image_provider.ImageConfiguration imageConfiguration;
 
   ExternalAdapterImage _copy() {
-    return ExternalAdapterImage(url, targetWidth: targetWidth, targetHeight: targetHeight, 
-      placeholderProvider: placeholderProvider, parameters: parameters, extraInfo: extraInfo);
+    return ExternalAdapterImage(url, scale: scale, targetWidth: targetWidth, 
+      targetHeight: targetHeight, placeholderProvider: placeholderProvider, 
+      parameters: parameters, extraInfo: extraInfo);
   }
 
   @override
@@ -539,6 +544,7 @@ class ExternalAdapterImage extends image_provider.ImageProvider<image_provider.E
       return false;
     final ExternalAdapterImage typedOther = other;
     return url == typedOther.url
+      && scale == typedOther.scale
       && targetWidth == typedOther.targetWidth
       && targetHeight == typedOther.targetHeight
       && placeholderProvider == typedOther.placeholderProvider
@@ -550,5 +556,8 @@ class ExternalAdapterImage extends image_provider.ImageProvider<image_provider.E
   int get hashCode => url.hashCode;
 
   @override
-  String toString() => '$runtimeType("$url", target-size: $targetWidth * $targetHeight, params: $parameters, requestForDimension: ${imageConfiguration?.requestForDimension})';
+  String toString() => '$runtimeType("$url", scale: $scale, '
+      'target-size: $targetWidth * $targetHeight, '
+      'params: $parameters, '
+      'requestForDimension: ${imageConfiguration?.requestForDimension})';
 }

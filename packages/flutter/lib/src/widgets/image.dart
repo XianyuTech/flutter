@@ -413,6 +413,7 @@ class Image extends StatefulWidget {
   Image.externalAdapter(
     String src, {
     Key key,
+    double scale = 1.0,
     this.frameBuilder,
     this.loadingBuilder,
     this.errorBuilder,
@@ -438,8 +439,9 @@ class Image extends StatefulWidget {
     bool releaseWhenOutOfScreen = false,
     this.temporaryWidthForLayout,
     this.temporaryHeightForLayout,
-  }) : image = ExternalAdapterImage(src, 
-          targetWidth: targetWidth, 
+  }) : image = ExternalAdapterImage(src,
+          scale: scale,
+          targetWidth: targetWidth,
           targetHeight: targetHeight,
           placeholderProvider: placeholderProvider,
           parameters: parameters,
