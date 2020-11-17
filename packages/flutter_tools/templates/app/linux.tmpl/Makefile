@@ -37,7 +37,7 @@ BUNDLE_DATA_DIR=$(BUNDLE_OUT_DIR)/data
 BUNDLE_LIB_DIR=$(BUNDLE_OUT_DIR)/lib
 
 BIN_OUT=$(BUNDLE_OUT_DIR)/$(BINARY_NAME)
-ICU_DATA_OUT=$(BUNDLE_DATA_DIR)/$(ICU_DATA_NAME)
+# ICU_DATA_OUT=$(BUNDLE_DATA_DIR)/$(ICU_DATA_NAME)
 FLUTTER_LIB_OUT=$(BUNDLE_LIB_DIR)/$(notdir $(FLUTTER_LIB))
 ALL_LIBS_OUT=$(FLUTTER_LIB_OUT) \
 	$(foreach lib,$(EXTRA_BUNDLED_LIBRARIES),$(BUNDLE_LIB_DIR)/$(notdir $(lib)))
@@ -103,7 +103,8 @@ sync: $(FLUTTER_CONFIG_FILE)
 	$(LINUX_BUILD) linux-x64 $(BUILD)
 
 .PHONY: bundle
-bundle: $(ICU_DATA_OUT) $(ALL_LIBS_OUT) bundleflutterassets
+# bundle: $(ICU_DATA_OUT) $(ALL_LIBS_OUT) bundleflutterassets
+bundle: $(ALL_LIBS_OUT) bundleflutterassets
 
 $(BIN_OUT): $(OBJ_FILES) $(ALL_LIBS_OUT)
 	mkdir -p $(@D)
@@ -121,9 +122,9 @@ $(FLUTTER_LIB_OUT): $(FLUTTER_LIB)
 	mkdir -p $(@D)
 	cp $< $@
 
-$(ICU_DATA_OUT): $(ICU_DATA_SOURCE)
-	mkdir -p $(@D)
-	cp $< $@
+# $(ICU_DATA_OUT): $(ICU_DATA_SOURCE)
+# 	mkdir -p $(@D)
+# 	cp $< $@
 
 -include $(DEPENDENCY_FILES)
 
