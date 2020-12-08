@@ -98,8 +98,11 @@ class CocoaPods {
     _processUtils.exitsHappy(<String>['which', 'pod']);
 
   Future<String> get cocoaPodsVersionText {
+    final IosProject iosProject = FlutterProject.current().ios;
+    final Directory iosDirectory = iosProject.hostAppRoot;
     _versionText ??= _processUtils.run(
       <String>['pod', '--version'],
+      workingDirectory: iosDirectory.path,
       environment: <String, String>{
         'LANG': 'en_US.UTF-8',
       },
