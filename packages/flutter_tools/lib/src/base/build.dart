@@ -8,6 +8,7 @@ import 'package:process/process.dart';
 
 import '../artifacts.dart';
 import '../build_info.dart';
+import '../dart/package_map.dart';
 import '../macos/xcode.dart';
 
 import 'file_system.dart';
@@ -207,7 +208,16 @@ class AOTSnapshotter {
 
     // On iOS and macOS, we use Xcode to compile the snapshot into a dynamic library that the
     // end-developer can link into their app.
+    final PackageMap packageMap = PackageMap(packagesPath, fileSystem: _fileSystem);
+    final String packageMapError = packageMap.checkValid();
+    if (packageMapError != null) {
+      _logger.printError(packageMapError);
+      return 1;
+    }
+    final String enginePath = _fileSystem.path.dirname(_fileSystem.path.fromUri(packageMap.map['sky_engine']));
+    
     if (platform == TargetPlatform.ios || platform == TargetPlatform.darwin_x64) {
+      final String ldPath = _fileSystem.path.join(enginePath, '..', '..', '..', 'ld', 'ld');
       final RunResult result = await _buildFramework(
         appleArch: darwinArch,
         isIOS: platform == TargetPlatform.ios,
@@ -215,6 +225,7 @@ class AOTSnapshotter {
         outputPath: outputDir.path,
         bitcode: bitcode,
         quiet: quiet,
+        ldPath: ldPath,
       );
       if (result.exitCode != 0) {
         return result.exitCode;
@@ -231,7 +242,8 @@ class AOTSnapshotter {
     @required String assemblyPath,
     @required String outputPath,
     @required bool bitcode,
-    @required bool quiet
+    @required bool quiet,
+    @required String ldPath
   }) async {
     final String targetArch = getNameForDarwinArch(appleArch);
     if (!quiet) {
@@ -272,6 +284,8 @@ class AOTSnapshotter {
     final String appLib = _fileSystem.path.join(frameworkDir, 'App');
     final List<String> linkArgs = <String>[
       ...commonBuildOptions,
+      '-fuse-ld=' + ldPath,
+      '-Xlinker', '-compress=zlib', '-Xlinker', '-dart_aot',
       '-dynamiclib',
       '-Xlinker', '-rpath', '-Xlinker', '@executable_path/Frameworks',
       '-Xlinker', '-rpath', '-Xlinker', '@loader_path/Frameworks',
