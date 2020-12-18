@@ -113,6 +113,7 @@ class CocoaPods {
   }
 
   Future<CocoaPodsStatus> get evaluateCocoaPodsInstallation async {
+    return CocoaPodsStatus.recommended;
     if (!(await isInstalled)) {
       return CocoaPodsStatus.notInstalled;
     }
