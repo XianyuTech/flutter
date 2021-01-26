@@ -1415,7 +1415,7 @@ const List<List<String>> _windowsBinaryDirs = <List<String>>[
 const List<List<String>> _iosBinaryDirs = <List<String>>[
   <String>['ios', 'ios/artifacts.zip'],
   <String>['ios-profile', 'ios-profile/artifacts.zip'],
-  <String>['ios-release', 'ios-release/artifacts.zip'],
+  <String>['ios-release', 'ios-release-nobitcode/artifacts.zip'],
 ];
 
 const List<List<String>> _androidBinaryDirs = <List<String>>[
