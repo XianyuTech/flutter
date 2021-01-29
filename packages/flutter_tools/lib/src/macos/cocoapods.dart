@@ -98,11 +98,8 @@ class CocoaPods {
     _processUtils.exitsHappy(<String>['which', 'pod']);
 
   Future<String> get cocoaPodsVersionText {
-    final IosProject iosProject = FlutterProject.current().ios;
-    final Directory iosDirectory = iosProject.hostAppRoot;
     _versionText ??= _processUtils.run(
       <String>['pod', '--version'],
-      workingDirectory: iosDirectory.path,
       environment: <String, String>{
         'LANG': 'en_US.UTF-8',
       },
@@ -113,7 +110,6 @@ class CocoaPods {
   }
 
   Future<CocoaPodsStatus> get evaluateCocoaPodsInstallation async {
-    return CocoaPodsStatus.recommended;
     if (!(await isInstalled)) {
       return CocoaPodsStatus.notInstalled;
     }
@@ -151,7 +147,6 @@ class CocoaPods {
   /// See https://github.com/CocoaPods/CocoaPods/blob/master/lib/cocoapods/config.rb#L138
   /// for details of this variable.
   Future<bool> get isCocoaPodsInitialized async {
-    return true;
     final Version installedVersion = Version.parse(await cocoaPodsVersionText);
     if (installedVersion != null && installedVersion >= Version.parse('1.8.0')) {
       return true;
