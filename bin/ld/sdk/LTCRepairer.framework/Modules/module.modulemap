@@ -1,0 +1,6 @@
+framework module LTCRepairer {
+  umbrella header "LTCRepairer.h"
+
+  export *
+  module * { export * }
+}
