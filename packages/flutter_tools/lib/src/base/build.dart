@@ -303,6 +303,7 @@ class AOTSnapshotter {
       '-Xlinker',
       '-compress=zlib',
       '-Xlinker',
+      '-no_compress_objc',
       '-dart_aot',
       '-dynamiclib',
       '-Xlinker',
