@@ -530,6 +530,13 @@ class ImageCacheStatus {
     this.live = false,
   }) : assert(!pending || !keepAlive);
 
+
+  const ImageCacheStatus({
+    this.pending = false,
+    this.keepAlive = false,
+    this.live = false,
+  }) : assert(!pending || !keepAlive);
+
   /// An image that has been submitted to [ImageCache.putIfAbsent], but
   /// not yet completed.
   final bool pending;
