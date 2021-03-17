@@ -1990,8 +1990,7 @@ class ScaffoldState extends State<Scaffold> with TickerProviderStateMixin {
           entry.remove();
           removedEntry = true;
         }
-      },mSheets.contains(bottomSheet)) {
-      setState(() {
+      },
       onDismissed: () {
         if (_dismissedBottomSheets.contains(bottomSheet)) {
           setState(() {
