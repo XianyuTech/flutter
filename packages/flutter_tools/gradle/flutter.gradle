@@ -205,13 +205,23 @@ class FlutterPlugin implements Plugin<Project> {
         String repository = useLocalEngine()
             ? project.property('local-engine-repo')
             : "$hostedRepository/download.flutter.io"
+
+        String ali_flutter_storage_base_url = System.getenv("FLUTTER_STORAGE_BASE_URL")
+        if (!ali_flutter_storage_base_url?.trim()) {
+            ali_flutter_storage_base_url = "http://flutter-storage.alibaba-inc.com"
+        }
+
         project.rootProject.allprojects {
             repositories {
                 maven {
                     url repository
                 }
+                maven {
+                    url ali_flutter_storage_base_url
+                }
             }
         }
+
         // Add the embedding dependency.
         addApiDependencies(project, buildType.name,
                 "io.flutter:flutter_embedding_$flutterBuildMode:$engineVersion")
