@@ -655,6 +655,7 @@ Future<void> buildGradleAar({
   }
 
   command.add(aarTask);
+  command.add('--no-daemon');
 
   final Stopwatch sw = Stopwatch()..start();
   RunResult result;
