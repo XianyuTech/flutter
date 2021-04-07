@@ -562,8 +562,8 @@ public final class GeneratedPluginRegistrant {
 const String _androidPluginRegistryTemplateNewEmbedding = '''
 package io.flutter.plugins;
 
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
+import android.support.annotation.Keep;
+import android.support.annotation.NonNull;
 
 import io.flutter.embedding.engine.FlutterEngine;
 {{#needsShim}}
